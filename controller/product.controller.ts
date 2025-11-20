@@ -218,3 +218,83 @@ export const searchProducts = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const createProduct = async (req: Request, res: Response) => {
+  try {
+    const { name, description, price, stock_quantity, image_url, category_id } = req.body;
+
+    // Majburiy maydonlarni tekshirish
+    if (!name || !description || !price || !category_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Majburiy maydonlar: name, description, price, category_id'
+      });
+    }
+
+    // Kategoriya mavjudligini tekshirish
+    const category = await Category.findByPk(category_id);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kategoriya topilmadi'
+      });
+    }
+
+    // Mahsulot yaratish
+    const product = await Product.create({
+      name,
+      description,
+      price: parseFloat(price),
+      stock_quantity: stock_quantity || 0,
+      image_url: image_url || null,
+      category_id,
+      is_active: true,
+      sold_count: 0
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Mahsulot muvaffaqiyatli qo\'shildi',
+      data: product
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Server xatosi',
+      error: error.message
+    });
+  }
+};
+
+export const createCategory = async (req: Request, res: Response) => {
+  try {
+    const { name, description, image_url } = req.body;
+
+    // Kategoriya nomi tekshirish
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Kategoriya nomi majburiy'
+      });
+    }
+
+    // Kategoriya yaratish
+    const category = await Category.create({
+      name,
+      description: description || null,
+      image_url: image_url || null
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Kategoriya muvaffaqiyatli qo\'shildi',
+      data: category
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Server xatosi',
+      error: error.message
+    });
+  }
+};

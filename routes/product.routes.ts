@@ -5,10 +5,16 @@ import {
   getAllProducts,
   getProductById,
   exploreProducts,
-  searchProducts
+  searchProducts,
+  createProduct,
+  createCategory
 } from '../controller/product.controller.js';
 
 const router = Router();
+
+router.post('/create', createProduct);
+
+router.post('/category/create', createCategory);
 
 router.get('/search', searchProducts);
 
