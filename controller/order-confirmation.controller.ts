@@ -36,6 +36,10 @@ export const confirmOrder = catchAsync(
       ],
     });
 
+    console.log("Cart Items:", cartItems);
+    console.log("Cart Items Length:", cartItems.length);
+    console.log("First Item:", cartItems[0]);
+
     if (cartItems.length === 0) {
       throw new AppError("Savatcha bo'sh", 400);
     }
@@ -56,13 +60,20 @@ export const confirmOrder = catchAsync(
 
     for (const cartItem of cartItems) {
       const product = cartItem.get("Product") as any;
-      const subtotal = parseFloat(product.price) * cartItem.quantity;
+      const productId = (cartItem as any).product_id;
+      const quantity = (cartItem as any).quantity;
+      
+      console.log("Cart Item:", cartItem);
+      console.log("Product ID:", productId);
+      console.log("Quantity:", quantity);
+      
+      const subtotal = parseFloat(product.price) * quantity;
       total_price += subtotal;
 
       const order = await Order.create({
         user_id: userId,
-        product_id: cartItem.product_id,
-        quantity: cartItem.quantity,
+        product_id: productId,
+        quantity: quantity,
         total_price: subtotal,
         status: "confirmed",
         full_name,

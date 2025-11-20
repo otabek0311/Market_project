@@ -2,8 +2,6 @@ import type { Request, Response } from 'express';
 import Favorite from '../models/favorite.model.js';
 import Product from '../models/product.model.js';
 
-Product.sync({force: false})
-
 export const addToFavorites = async (req: Request, res: Response) => {
   try {
     const { product_id } = req.body;
@@ -12,7 +10,7 @@ export const addToFavorites = async (req: Request, res: Response) => {
     if (!user_id) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized'
+        message: 'Avtorizatsiya talab qilinadi'
       });
     }
 
@@ -20,7 +18,7 @@ export const addToFavorites = async (req: Request, res: Response) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: 'Mahsulot topilmadi'
       });
     }
 
@@ -31,7 +29,7 @@ export const addToFavorites = async (req: Request, res: Response) => {
     if (existingFavorite) {
       return res.status(400).json({
         success: false,
-        message: 'Product already in favorites'
+        message: 'Bu mahsulot allaqachon sevimli ro\'yxatda bor'
       });
     }
 
@@ -42,13 +40,13 @@ export const addToFavorites = async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: 'Product added to favorites',
+      message: 'Mahsulot sevimli ro\'yxatga qo\'shildi',
       data: favorite
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Server xatosi',
       error: error.message
     });
   }
@@ -62,7 +60,7 @@ export const removeFromFavorites = async (req: Request, res: Response) => {
     if (!user_id) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized'
+        message: 'Avtorizatsiya talab qilinadi'
       });
     }
 
@@ -73,18 +71,18 @@ export const removeFromFavorites = async (req: Request, res: Response) => {
     if (result === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Favorite not found'
+        message: 'Sevimli mahsulot topilmadi'
       });
     }
 
     res.json({
       success: true,
-      message: 'Product removed from favorites'
+      message: 'Mahsulot sevimli ro\'yxatdan o\'chirildi'
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Server xatosi',
       error: error.message
     });
   }
@@ -97,7 +95,7 @@ export const getUserFavorites = async (req: Request, res: Response) => {
     if (!user_id) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized'
+        message: 'Avtorizatsiya talab qilinadi'
       });
     }
 
@@ -115,12 +113,13 @@ export const getUserFavorites = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
+      message: 'Sevimli mahsulotlar',
       data: favorites
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Server xatosi',
       error: error.message
     });
   }

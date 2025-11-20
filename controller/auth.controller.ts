@@ -14,14 +14,17 @@ import type {
 } from "../dto/auth.dto.js";
 
 class User extends Model {
-  public id!: number;
-  public username!: string;
-  public email!: string;
-  public password!: string;
-  public phone?: string;
-  public profile_image?: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare username: string;
+  declare email: string;
+  declare password: string;
+  declare phone: string | null;
+  declare profile_image: string | null;
+  declare otp: string | null;
+  declare otp_expires_at: Date | null;
+  declare is_verified: boolean;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 User.init(
@@ -53,6 +56,20 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    otp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    otp_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
+    is_verified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     sequelize,
@@ -73,11 +90,13 @@ export const register = catchAsync(
     }
 
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+    
+    if (existingUser && existingUser.is_verified) {
       throw new AppError("Bu email allaqachon ro'yxatdan o'tgan", 400);
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp_expires_at = new Date(Date.now() + 10 * 60 * 1000);
     
     try {
       await sendOtp(email, otp);
@@ -87,20 +106,40 @@ export const register = catchAsync(
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-    });
+    if (existingUser && !existingUser.is_verified) {
+      existingUser.username = username;
+      existingUser.password = hashedPassword;
+      existingUser.otp = otp;
+      existingUser.otp_expires_at = otp_expires_at;
+      await existingUser.save();
 
-    res.status(201).json({
-      message: "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi. OTP yuborildi",
-      user: {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-      },
-    });
+      res.status(200).json({
+        message: "Yangi OTP yuborildi. Iltimos, emailingizni tekshiring",
+        user: {
+          id: existingUser.id,
+          username: existingUser.username,
+          email: existingUser.email,
+        },
+      });
+    } else {
+      const newUser = await User.create({
+        username,
+        email,
+        password: hashedPassword,
+        otp,
+        otp_expires_at,
+        is_verified: false,
+      });
+
+      res.status(201).json({
+        message: "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi. OTP yuborildi",
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email,
+        },
+      });
+    }
   }
 );
 
@@ -113,8 +152,7 @@ export const login = catchAsync(
     }
 
     const user = await User.findOne({ 
-      where: { email },
-      raw: true
+      where: { email }
     });
     if (!user) {
       throw new AppError("Email yoki parol noto'g'ri", 401);
@@ -157,10 +195,10 @@ export const getProfile = catchAsync(
 
     res.status(200).json({
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        createdAt: user.createdAt,
+        id: user.dataValues.id,
+        username: user.dataValues.username,
+        email: user.dataValues.email,
+        createdAt: user.dataValues.createdAt,
       },
     });
   }
@@ -174,9 +212,48 @@ export const verifyOtp = catchAsync(
       throw new AppError("Email va OTP kiritilishi kerak", 400);
     }
 
-    res.status(200).json({ message: "OTP muvaffaqiyatli tasdiqlandi" });
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      throw new AppError("Foydalanuvchi topilmadi", 404);
+    }
+
+    if (user.dataValues.is_verified) {
+      throw new AppError("Bu email allaqachon tasdiqlangan", 400);
+    }
+
+    const storedOtp = String(user.dataValues.otp || "").trim();
+    const inputOtp = String(otp).trim();
+
+    if (storedOtp !== inputOtp) {
+      console.log(storedOtp);
+      console.log(inputOtp);
+      
+      throw new AppError("OTP noto'g'ri", 400);
+    }
+
+    if (user.dataValues.otp_expires_at && new Date() > user.dataValues.otp_expires_at) {
+      throw new AppError("OTP muddati tugagan", 400);
+    }
+
+    user.dataValues.is_verified = true;
+    user.dataValues.otp = null;
+    user.dataValues.otp_expires_at = null;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "OTP muvaffaqiyatli tasdiqlandi",
+      user: {
+        id: user.dataValues.id,
+        username: user.dataValues.username,
+        email: user.dataValues.email,
+        is_verified: user.dataValues.is_verified,
+      },
+    });
   }
 );
+
 
 export const logout = catchAsync(
   async (req: Request, res: Response) => {

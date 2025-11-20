@@ -4,13 +4,14 @@ import {
   removeFromFavorites, 
   getUserFavorites 
 } from '../controller/favorite.controller.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.post('/', addToFavorites);
+router.post('/', authMiddleware, addToFavorites);
 
-router.delete('/:product_id', removeFromFavorites);
+router.delete('/:product_id', authMiddleware, removeFromFavorites);
 
-router.get('/', getUserFavorites);
+router.get('/', authMiddleware, getUserFavorites);
 
 export default router;

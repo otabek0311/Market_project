@@ -7,6 +7,7 @@ import type { CheckoutRequestDto, CheckoutResponseDto, CartDetailDto } from "../
 
 Cart.sync({force:false})
 
+
 export const getCheckoutSummary = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = (req as any).user?.id;
@@ -99,13 +100,15 @@ export const checkout = catchAsync(
 
     for (const cartItem of cartItems) {
       const product = cartItem.get("Product") as any;
-      const subtotal = parseFloat(product.price) * cartItem.quantity;
+      const productId = (cartItem as any).product_id;
+      const quantity = (cartItem as any).quantity;
+      const subtotal = parseFloat(product.price) * quantity;
       total_price += subtotal;
 
       const order = await Order.create({
         user_id: userId,
-        product_id: cartItem.product_id,
-        quantity: cartItem.quantity,
+        product_id: productId,
+        quantity: quantity,
         total_price: subtotal,
         status: "pending",
       });

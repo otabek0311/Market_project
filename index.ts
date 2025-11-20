@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import sequelize from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import { globalErrorHandler } from "./error/custom-error-hendler.js";
 
 import favoriteRoutes from "./routes/favorite.routes.js";
 import productRoutes from "./routes/product.routes.js";
@@ -37,6 +38,9 @@ app.use("/api/order-confirmation", orderConfirmationRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "API is working!" });
 });
+
+// Global error handler
+app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server ishladi : ${PORT}`);

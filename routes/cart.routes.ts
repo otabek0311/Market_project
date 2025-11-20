@@ -14,7 +14,7 @@ router.use(authMiddleware);
 
 router.post("/add", addToCart);
 
-router.get("/", getCart);
+router.get("/get_cart", getCart);
 
 router.delete("/:cartItemId", removeFromCart);
 
