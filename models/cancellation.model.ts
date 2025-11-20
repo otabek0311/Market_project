@@ -63,7 +63,7 @@ Cancellation.init(
   }
 );
 
-// Associations
+
 Cancellation.belongsTo(Product, { foreignKey: 'product_id' });
 
 export default Cancellation;
