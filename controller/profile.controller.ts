@@ -15,6 +15,8 @@ import type {
   WishlistDto,
 } from "../dto/profile.dto.js";
 
+User.sync({force: false })
+
 export const getProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = (req as any).user?.id;

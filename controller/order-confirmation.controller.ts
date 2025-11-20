@@ -5,6 +5,8 @@ import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import type { OrderConfirmationRequestDto, OrderConfirmationResponseDto } from "../dto/order-confirmation.dto.js";
 
+Order.sync({force: false})
+
 export const confirmOrder = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = (req as any).user?.id;

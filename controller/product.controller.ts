@@ -3,6 +3,8 @@ import { Op } from 'sequelize';
 import Product from '../models/product.model.js';
 import Category from '../models/category.model.js';
 
+Product.sync({force: false})
+
 export const getTopSellingProducts = async (req: Request, res: Response) => {
   try {
     const products = await Product.findAll({

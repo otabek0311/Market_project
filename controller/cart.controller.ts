@@ -4,6 +4,8 @@ import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 import type { AddToCartDto, CartResponseDto } from "../dto/cart.dto.js";
 
+Cart.sync({force:false})
+
 export const addToCart = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = (req as any).user?.id;

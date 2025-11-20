@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import Favorite from '../models/favorite.model.js';
 import Product from '../models/product.model.js';
 
+Product.sync({force: false})
+
 export const addToFavorites = async (req: Request, res: Response) => {
   try {
     const { product_id } = req.body;

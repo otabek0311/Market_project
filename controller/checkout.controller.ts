@@ -5,6 +5,8 @@ import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import type { CheckoutRequestDto, CheckoutResponseDto, CartDetailDto } from "../dto/checkout.dto.js";
 
+Cart.sync({force:false})
+
 export const getCheckoutSummary = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = (req as any).user?.id;

@@ -62,6 +62,8 @@ User.init(
   }
 );
 
+User.sync({force:false})
+
 export const register = catchAsync(
   async (req: Request<{}, {}, RegisterDto>, res: Response<RegisterResponseDto>) => {
     const { username, email, password } = req.body;
